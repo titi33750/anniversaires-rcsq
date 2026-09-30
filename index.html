@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Anniversaires RCSQ</title>
+<meta name="theme-color" content="#082b55">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="RCSQ Anniv">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--blue:#0751a5;--navy:#082b55;--bg:#f4f7fb;--white:#fff;--mut:#6b7789;--red:#b42318}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:#142033}
+header{background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;padding:20px 18px}header h1{margin:0;font-size:24px}header p{margin:4px 0 0;opacity:.9}
+main{max-width:950px;margin:auto;padding:15px 15px 90px}.tabs{display:flex;gap:7px;overflow:auto;margin-bottom:12px}
+button,.btn{border:0;border-radius:12px;padding:10px 13px;font-weight:750;cursor:pointer;background:#e4eaf3;color:#18314f}
+button.primary{background:var(--blue);color:#fff}.tab.active{background:var(--blue);color:#fff}.danger{color:var(--red)}
+.card{background:#fff;border-radius:18px;padding:15px;margin:10px 0;box-shadow:0 3px 16px #183b6512}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+.row{display:flex;gap:10px;align-items:center;justify-content:space-between}.actions{display:flex;gap:7px;flex-wrap:wrap}.muted{font-size:13px;color:var(--mut)}.big{font-size:27px;font-weight:850}
+label{display:block;font-size:13px;font-weight:750;margin:7px 0 4px}input,select,textarea{width:100%;border:1px solid #ccd5e1;border-radius:10px;padding:10px;font:inherit}
+.badge{display:inline-block;background:#e8f1ff;color:#164c91;padding:4px 8px;border-radius:99px;font-size:11px;font-weight:800;margin:2px}
+.hidden{display:none}.empty{text-align:center;padding:28px;color:var(--mut)}.today{border:2px solid #f0b429}
+.checks{display:flex;gap:6px;flex-wrap:wrap}.check{border:1px solid #d8e0eb;border-radius:10px;padding:7px 9px;font-size:13px}.check input{width:auto}
+footer{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #dde4ed;text-align:center;padding:8px;color:var(--mut);font-size:11px}
+@media(max-width:650px){
+ header{padding:16px 15px 14px;border-radius:0 0 24px 24px}
+ header h1{font-size:21px}
+ main{padding:14px 12px 96px}
+ .tabs{position:fixed;z-index:5;bottom:0;left:0;right:0;margin:0;background:#fff;padding:8px 6px calc(8px + env(safe-area-inset-bottom));border-top:1px solid #dce3ed;justify-content:space-around}
+ .tab{font-size:11px;padding:9px 7px;min-width:62px}
+ footer{display:none}
+ .card{border-radius:17px}
+}
+.appmark{font-weight:900;letter-spacing:.2px}.installHint{background:#eaf2ff;border:1px solid #c8daf7}
+</style></head><body>
+<header><div style="display:flex;align-items:center;gap:13px"><img src="logo-rcsq.png" alt="Logo RCSQ" style="width:72px;height:72px;object-fit:contain;background:white;border-radius:16px;padding:3px"><div><h1>🎂 Anniversaires RCSQ</h1><p>Tout le club, un seul calendrier d’anniversaires</p></div></div></header>
+<main>
+<div class="tabs"><button class="tab active" data-page="dash">🏠<br>Accueil</button><button class="tab" data-page="soon">🎂<br>À venir</button><button class="tab" data-page="people">👥<br>Personnes</button><button class="tab" data-page="reminders">🔔<br>Rappels</button><button class="tab" data-page="settings">⚙️<br>Réglages</button></div>
+
+<section id="dash">
+<div id="heroToday" class="card today">
+  <div class="muted">🎂 ANNIVERSAIRE DU JOUR</div>
+  <div id="todayHeroContent"></div>
+</div>
+<div id="tomorrowBox" class="card">
+  <div class="muted">🔔 DEMAIN</div>
+  <div id="tomorrowList"></div>
+</div>
+<div class="grid">
+  <div class="card"><div class="muted">Aujourd’hui</div><div class="big" id="nToday">0</div></div>
+  <div class="card"><div class="muted">7 prochains jours</div><div class="big" id="nWeek">0</div></div>
+  <div class="card"><div class="muted">Personnes enregistrées</div><div class="big" id="nPeople">0</div></div>
+</div>
+<div class="card"><div class="row"><b>📆 Après-demain et la suite</b><button onclick="show('soon')">Voir tout</button></div><div id="nextFew"></div></div>
+<div id="todayList" class="hidden"></div>
+</section>
+
+<section id="soon" class="hidden"><div class="card row"><b>🎈 Prochains anniversaires</b><select id="range" style="width:auto"><option value="7">7 jours</option><option value="30" selected>30 jours</option><option value="365">12 mois</option></select></div><div id="soonList"></div></section>
+
+<section id="people" class="hidden">
+<div class="card"><h2 id="formTitle">Ajouter une personne</h2>
+<div class="grid"><div><label>Prénom</label><input id="firstName" autocomplete="off"></div><div><label>Date de naissance</label><input id="birthDate" type="date"></div></div>
+<label>Groupes / fonctions</label><div id="groupChecks" class="checks"></div>
+<div class="actions" style="margin-top:12px"><button class="primary" id="savePerson">Enregistrer</button><button id="cancelEdit" class="hidden">Annuler</button></div></div>
+<div class="card grid"><div><label>Recherche</label><input id="search" placeholder="Prénom ou groupe"></div><div><label>Filtrer par groupe</label><select id="filter"></select></div></div>
+<div id="peopleList"></div>
+</section>
+
+
+<section id="reminders" class="hidden">
+<div class="card">
+<h2>🔔 Rappels d’anniversaire</h2>
+<p class="muted">L’application peut te rappeler les anniversaires quand elle est ouverte. Pour un rappel fiable même application fermée, utilise le bouton calendrier ci-dessous : l’événement sera ajouté au calendrier de ton téléphone avec une alerte.</p>
+<div class="grid">
+<div><label>Rappel avant l’anniversaire</label><select id="reminderDays"><option value="0">Le jour même</option><option value="1" selected>1 jour avant</option><option value="2">2 jours avant</option><option value="7">7 jours avant</option></select></div>
+<div><label>Heure souhaitée</label><input id="reminderTime" type="time" value="09:00"></div>
+</div>
+<button class="primary" id="saveReminder" style="margin-top:10px">Enregistrer le réglage</button>
+</div>
+<div class="card"><h2>📅 Ajouter au calendrier</h2><p class="muted">Crée un fichier calendrier annuel pour tous les anniversaires enregistrés. Les événements se répètent chaque année et comportent une alerte.</p><button id="calendarBtn">📲 Créer le calendrier RCSQ</button></div>
+<div class="card"><h2>Anniversaires à surveiller</h2><div id="reminderList"></div></div>
+</section>
+
+<section id="settings" class="hidden">
+<div class="card installHint"><h2>📱 Installer sur l’écran d’accueil</h2>
+<p><b>Sur iPhone :</b> ouvre l’application dans Safari, touche <b>Partager</b>, puis <b>Sur l’écran d’accueil</b>. Elle s’ouvrira ensuite presque comme une application classique.</p>
+<p class="muted">L’icône RCSQ et le nom « RCSQ Anniv » sont déjà préparés.</p></div>
+<div class="card"><h2>Groupes du club</h2><p class="muted">Une personne peut appartenir à plusieurs groupes.</p><textarea id="groupsText" rows="9"></textarea><button class="primary" id="saveGroups" style="margin-top:10px">Enregistrer</button></div>
+<div class="card"><h2>Message 🎂</h2><p class="muted">Variables : {prenom}, {age}, {groupes}</p><textarea id="template" rows="5"></textarea><button class="primary" id="saveTemplate" style="margin-top:10px">Enregistrer</button></div>
+<div class="card"><h2>Sauvegarde</h2><p class="muted">Le fichier exporté contient les données saisies. À conserver dans un emplacement privé.</p><div class="actions"><button id="exportBtn">⬇️ Exporter</button><label class="btn">⬆️ Restaurer<input id="importFile" type="file" accept=".json" hidden></label></div></div>
+<div class="card"><h2>🔐 Données locales</h2><p class="muted">Les informations sont enregistrées dans le stockage local du navigateur. Cette application n’envoie pas la liste des personnes vers ChatGPT ou un serveur.</p></div>
+</section></main>
+<footer>Rugby Club Saint-Quentin • Anniversaires RCSQ V6 • PWA installable</footer>
+<script>
+const KEY='rcsq_birthdays_v2';
+const DEF={groups:['Baby Rugby','M6','M8','M10','M12','M14','Les Barons du XV','5Q – Rugby à 5','Bénévole','Éducateur / Encadrant','Bureau / Dirigeant','Autre'],people:[],template:"🎂 Joyeux anniversaire {prenom} ! Toute la famille du RCSQ te souhaite une excellente journée 🏉🎉",reminderDays:1,reminderTime:"09:00"};
+let data=load(),editing=null;
+function load(){try{let x=JSON.parse(localStorage.getItem(KEY));if(!x)return structuredClone(DEF);if(x.reminderDays===undefined)x.reminderDays=1;if(!x.reminderTime)x.reminderTime='09:00';return x}catch(e){return structuredClone(DEF)}}
+function save(){localStorage.setItem(KEY,JSON.stringify(data));render()}
+function e(s){return String(s).replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]))}
+function p(s){let[a,b,c]=s.split('-').map(Number);return{y:a,m:b,d:c}}
+function next(s){let z=p(s),t=new Date();t.setHours(0,0,0,0);let b=new Date(t.getFullYear(),z.m-1,z.d);if(b<t)b=new Date(t.getFullYear()+1,z.m-1,z.d);return b}
+function days(s){let t=new Date();t.setHours(0,0,0,0);return Math.round((next(s)-t)/86400000)}
+function age(m){return next(m.birthDate).getFullYear()-p(m.birthDate).y}
+function message(m){return data.template.replaceAll('{prenom}',m.firstName).replaceAll('{age}',age(m)).replaceAll('{groupes}',m.groups.join(', '))}
+async function copyMsg(id){let m=data.people.find(x=>x.id==id);try{await navigator.clipboard.writeText(message(m));alert('Message copié ✅')}catch(_){prompt('Copie le message :',message(m))}}
+async function shareMsg(id){
+ let m=data.people.find(x=>x.id==id),txt=message(m);
+ if(navigator.share){try{await navigator.share({text:txt});return}catch(err){if(err.name==='AbortError')return}}
+ try{await navigator.clipboard.writeText(txt);alert("Message copié ✅ Tu peux maintenant le coller dans WhatsApp, SMS ou les réseaux.")}catch(_){prompt("Copie le message :",txt)}
+}
+function badges(gs){return gs.map(g=>`<span class="badge">${e(g)}</span>`).join('')}
+function card(m,hi=false){let d=days(m.birthDate),b=next(m.birthDate),lab=d===0?"Aujourd’hui":d===1?"Demain":`Dans ${d} jours`;return `<div class="card ${hi?'today':''}"><div class="row"><div><b style="font-size:18px">${e(m.firstName)}</b><div>${badges(m.groups)}</div><div class="muted">${b.toLocaleDateString('fr-FR',{day:'numeric',month:'long'})} • ${age(m)} ans • ${lab}</div></div><div class="actions"><button onclick="copyMsg(${m.id})">📋 Copier</button><button class="primary" onclick="shareMsg(${m.id})">💬 Partager</button></div></div></div>`}
+function render(){
+nPeople.textContent=data.people.length;let td=data.people.filter(x=>days(x.birthDate)===0),wk=data.people.filter(x=>days(x.birthDate)<=7);nToday.textContent=td.length;nWeek.textContent=wk.length;
+todayList.innerHTML='';
+todayHeroContent.innerHTML=td.length?td.map(m=>`<div style="padding-top:10px"><div style="font-size:25px;font-weight:850">${e(m.firstName)} fête ses ${age(m)} ans !</div><div style="margin:7px 0">${badges(m.groups)}</div><div class="actions"><button onclick="copyMsg(${m.id})">📋 Copier le message</button><button class="primary" onclick="shareMsg(${m.id})">💬 Préparer le message</button></div></div>`).join('<hr style="border:0;border-top:1px solid #e5eaf0;margin:15px 0">'):'<div class="empty">🎈 Aucun anniversaire aujourd’hui.</div>';
+let tm=data.people.filter(x=>days(x.birthDate)===1);
+tomorrowList.innerHTML=tm.length?tm.map(m=>`<div style="padding:7px 0"><b>${e(m.firstName)}</b> ${badges(m.groups)} <span class="muted">• ${age(m)} ans demain</span></div>`).join(''):'<div class="muted" style="padding-top:8px">Aucun anniversaire demain.</div>';
+let nf=data.people.filter(x=>days(x.birthDate)>=2&&days(x.birthDate)<=7).sort((a,b)=>days(a.birthDate)-days(b.birthDate));
+nextFew.innerHTML=nf.length?nf.map(m=>`<div style="padding:7px 0;border-bottom:1px solid #edf0f4"><b>${e(m.firstName)}</b> ${badges(m.groups)} <span class="muted">• dans ${days(m.birthDate)} jours</span></div>`).join(''):'<div class="muted" style="padding-top:8px">Rien d’autre dans les 7 prochains jours.</div>';
+groupsText.value=data.groups.join('\n');template.value=data.template;
+groupChecks.innerHTML=data.groups.map((g,i)=>`<label class="check"><input type="checkbox" name="grp" value="${e(g)}"> ${e(g)}</label>`).join('');
+filter.innerHTML='<option value="">Tous les groupes</option>'+data.groups.map(g=>`<option>${e(g)}</option>`).join('');
+reminderDays.value=String(data.reminderDays??1);reminderTime.value=data.reminderTime||'09:00';renderSoon();renderPeople();renderReminders();
+}
+function renderSoon(){let n=+range.value,a=data.people.filter(x=>days(x.birthDate)<=n).sort((a,b)=>days(a.birthDate)-days(b.birthDate));soonList.innerHTML=a.length?a.map(x=>card(x)).join(''):'<div class="empty">Aucun anniversaire sur cette période.</div>'}
+function renderPeople(){let q=search.value.toLowerCase().trim(),f=filter.value,a=data.people.filter(x=>(x.firstName+' '+x.groups.join(' ')).toLowerCase().includes(q)&&(!f||x.groups.includes(f))).sort((a,b)=>a.firstName.localeCompare(b.firstName));peopleList.innerHTML=a.length?a.map(m=>`<div class="card"><div class="row"><div><b>${e(m.firstName)}</b><div>${badges(m.groups)}</div><div class="muted">${new Date(m.birthDate+'T12:00').toLocaleDateString('fr-FR')}</div></div><div class="actions"><button onclick="editPerson(${m.id})">✏️</button><button class="danger" onclick="delPerson(${m.id})">🗑️</button></div></div></div>`).join(''):'<div class="empty">Aucune personne enregistrée.</div>'}
+function selectedGroups(){return [...document.querySelectorAll('input[name=grp]:checked')].map(x=>x.value)}
+function clearForm(){editing=null;firstName.value='';birthDate.value='';document.querySelectorAll('input[name=grp]').forEach(x=>x.checked=false);formTitle.textContent='Ajouter une personne';cancelEdit.classList.add('hidden')}
+function editPerson(id){let m=data.people.find(x=>x.id===id);editing=id;firstName.value=m.firstName;birthDate.value=m.birthDate;document.querySelectorAll('input[name=grp]').forEach(x=>x.checked=m.groups.includes(x.value));formTitle.textContent='Modifier '+m.firstName;cancelEdit.classList.remove('hidden');show('people');scrollTo({top:0,behavior:'smooth'})}
+function delPerson(id){if(confirm('Supprimer cette personne ?')){data.people=data.people.filter(x=>x.id!==id);save()}}
+function show(id){document.querySelectorAll('main>section').forEach(x=>x.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.page===id))}
+document.querySelectorAll('.tab').forEach(x=>x.onclick=()=>show(x.dataset.page));range.onchange=renderSoon;search.oninput=renderPeople;filter.onchange=renderPeople;
+savePerson.onclick=()=>{let n=firstName.value.trim(),b=birthDate.value,g=selectedGroups();if(!n||!b)return alert('Prénom et date de naissance obligatoires.');if(!g.length)return alert('Choisis au moins un groupe ou une fonction.');if(editing)Object.assign(data.people.find(x=>x.id===editing),{firstName:n,birthDate:b,groups:g});else data.people.push({id:Date.now(),firstName:n,birthDate:b,groups:g});clearForm();save()};
+cancelEdit.onclick=clearForm;
+saveGroups.onclick=()=>{let g=groupsText.value.split('\n').map(x=>x.trim()).filter(Boolean);if(!g.length)return alert('Ajoute au moins un groupe.');data.groups=[...new Set(g)];save();alert('Groupes enregistrés ✅')};
+saveTemplate.onclick=()=>{data.template=template.value.trim();save();alert('Message enregistré ✅')};
+exportBtn.onclick=()=>{let b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='sauvegarde_anniversaires_RCSQ.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+importFile.onchange=async ev=>{let f=ev.target.files[0];if(!f)return;try{let x=JSON.parse(await f.text());if(!Array.isArray(x.people)||!Array.isArray(x.groups))throw 0;if(confirm('Cette restauration remplacera les données actuelles. Continuer ?')){data=x;save();alert('Restauration terminée ✅')}}catch(_){alert('Fichier invalide.')}ev.target.value=''};
+
+function renderReminders(){
+ let a=data.people.filter(x=>days(x.birthDate)<=7).sort((a,b)=>days(a.birthDate)-days(b.birthDate));
+ reminderList.innerHTML=a.length?a.map(x=>card(x,days(x.birthDate)===0)).join(''):'<div class="empty">Aucun anniversaire dans les 7 prochains jours.</div>';
+}
+saveReminder.onclick=()=>{data.reminderDays=+reminderDays.value;data.reminderTime=reminderTime.value||'09:00';save();alert('Réglage du rappel enregistré ✅')};
+function icsEscape(s){return String(s).replace(/\\/g,'\\\\').replace(/,/g,'\\,').replace(/;/g,'\\;').replace(/\n/g,'\\n')}
+calendarBtn.onclick=()=>{
+ if(!data.people.length)return alert("Ajoute d’abord au moins une personne.");
+ let mins=(data.reminderDays||0)*1440;
+ let lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//RCSQ//Anniversaires//FR','CALSCALE:GREGORIAN','METHOD:PUBLISH','X-WR-CALNAME:Anniversaires RCSQ'];
+ data.people.forEach(m=>{
+   let z=p(m.birthDate), mm=String(z.m).padStart(2,'0'), dd=String(z.d).padStart(2,'0');
+   let uid=`rcsq-${m.id}@anniversaires-local`;
+   lines.push('BEGIN:VEVENT',`UID:${uid}`,`DTSTART;VALUE=DATE:2026${mm}${dd}`,`RRULE:FREQ=YEARLY;BYMONTH=${z.m};BYMONTHDAY=${z.d}`,`SUMMARY:${icsEscape('🎂 Anniversaire '+m.firstName+' – RCSQ')}`,`DESCRIPTION:${icsEscape(m.groups.join(', '))}`,'BEGIN:VALARM',`TRIGGER:-PT${mins}M`,'ACTION:DISPLAY',`DESCRIPTION:${icsEscape('Anniversaire de '+m.firstName+' – RCSQ')}`,'END:VALARM','END:VEVENT');
+ });
+ lines.push('END:VCALENDAR');
+ let blob=new Blob([lines.join('\r\n')],{type:'text/calendar;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Anniversaires_RCSQ.ics';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+};
+
+render();
+</script>
+<script>
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', async () => {
+    try { await navigator.serviceWorker.register('./service-worker.js'); }
+    catch (e) { console.log('Service worker non disponible', e); }
+  });
+}
+</script>
+</body></html>
